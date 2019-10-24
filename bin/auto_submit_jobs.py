@@ -63,7 +63,7 @@ if __name__ == '__main__':
   parser.add_argument('-n', '--node', metavar='"node_name"', nargs=1)
   parser.add_argument('-m', '--max_trials', metavar=10, nargs=1)
   parser.add_argument('-t', '--pause_time', metavar=60, nargs=1)
-  parser.add_argument('-c', '--jobscript_check_filename', metavar='./jobscript_check.py', nargs=1)
+  parser.add_argument('-c', '--jobscript_check_filename', metavar='jobscript_check.py', nargs=1)
   args = vars(parser.parse_args())
 
   initialize_arguments(args)
