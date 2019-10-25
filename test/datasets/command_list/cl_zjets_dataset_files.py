@@ -1,5 +1,5 @@
 #!/bin/env python
-base_command = '/net/gaugino/data1/jbkim/analysis/copyDataset.github/modules/datasets/bin/copy_aods.py'
+base_command = '/net/gaugino/data1/jbkim/analysis/copydataset/modules/datasets/bin/copy_aods.py'
 base_folder = './files/'
 mid_folder = 'NanoAODv5/nano/2016/zjets'
 print('# [global_key] dataset_files_info_filename : ./input_jsons/updated_mc_dataset_files_info.json')

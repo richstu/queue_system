@@ -9,12 +9,15 @@ class ucsb_queue(queue_system.queue_system):
   # commands_info = [[command, job_index]]
   # submission_command_info = [submission_command, commands_info]
   def get_submission_command_info(self, commands_info, node):
+    if os.environ['CMSSW_BASE'] == "": 
+      print('[Error] CMSSW is not set')
+      return []
     submission_command = 'JobSubmit.csh '
     if node:
       submission_command += '-node '+node+' '
     submission_command += os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/command_divider.py '
     for command, job_index in commands_info:
-      command_with_env = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/setcmsenv.sh '+command
+      command_with_env = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/setcmsenv.sh '+os.environ['CMSSW_BASE']+' '+command
       #command_with_env = './setcmsenv.sh '+command.replace('"','\\"')
       submission_command += queue_system.compress_string(command_with_env)+' '
       #submission_command += './setcmsenv.sh '+command.replace('"','\\"')+'; '
