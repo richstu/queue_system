@@ -403,11 +403,11 @@ class queue_system():
 
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
   def print_jobs_status(self, jobs_info):
-    print('Submitted jobs: '+str(self.get_number_jobs(jobs_info, ['submitted'])))
-    print('Done jobs:      '+str(self.get_number_jobs(jobs_info, ['done'])))
-    print('Success jobs:   '+str(self.get_number_jobs(jobs_info, ['success'])))
-    print('Failed jobs:    '+str(self.get_number_jobs(jobs_info, ['fail'])))
-    print('To_submit jobs: '+str(self.get_number_jobs(jobs_info, ['to_submit'])))
+    print('Running commands: '+str(self.get_number_jobs(jobs_info, ['submitted'])))
+    print('Done commands:      '+str(self.get_number_jobs(jobs_info, ['done'])))
+    print('Success commands:   '+str(self.get_number_jobs(jobs_info, ['success'])))
+    print('Failed commands:    '+str(self.get_number_jobs(jobs_info, ['fail'])))
+    print('To_submit commands: '+str(self.get_number_jobs(jobs_info, ['to_submit'])))
     
 if __name__ == '__main__':
   # Reserved keys: job_id, job_status
