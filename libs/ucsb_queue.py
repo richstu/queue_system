@@ -61,17 +61,38 @@ class ucsb_queue(queue_system.queue_system):
     #  #submission_command += './setcmsenv.sh '+command.replace('"','\\"')+'; '
     #job_command_string = job_command_string[:-1]
 
-    # Alternative of making command file
+    ## Alternative of making command file
+    #job_command_string = '#!/bin/bash\n'
+    #for command_index, command_info in enumerate(commands_info):
+    #  command = command_info[0]
+    #  command_with_env = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/setcmsenv.sh '+os.environ['CMSSW_BASE']+' '+command
+    #  job_command_string += 'echo [Info] command_divider : Start divided_command['+str(command_index)+']\n'
+    #  job_command_string += 'echo [Info] command_divider : Current directory: '+os.getcwd()+'\n'
+    #  job_command_string += 'echo [Info] command_divider : command: '+command_with_env+'\n'
+    #  job_command_string += command_with_env+'\n'
+    #  job_command_string += 'echo [Info] command_divider : End divided_command['+str(command_index)+']\n'
+    #job_command_string += 'echo [Info] command_divider : Finished\n'
+
+    # Another alternative of making command file
     job_command_string = '#!/bin/bash\n'
+    # Set env
+    job_command_string += 'WORK_DIR=$PWD\n'
+    job_command_string += 'source /cvmfs/cms.cern.ch/cmsset_default.sh\n'
+    job_command_string += 'cd '+os.environ['CMSSW_BASE']+'/src\n'
+    job_command_string += 'eval `scramv1 runtime -sh`\n'
+    job_command_string += 'cd $WORK_DIR\n'
+    # Write commands
     for command_index, command_info in enumerate(commands_info):
       command = command_info[0]
-      command_with_env = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/setcmsenv.sh '+os.environ['CMSSW_BASE']+' '+command
+      #command_with_env = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/setcmsenv.sh '+os.environ['CMSSW_BASE']+' '+command
+
       job_command_string += 'echo [Info] command_divider : Start divided_command['+str(command_index)+']\n'
       job_command_string += 'echo [Info] command_divider : Current directory: '+os.getcwd()+'\n'
-      job_command_string += 'echo [Info] command_divider : command: '+command_with_env+'\n'
-      job_command_string += command_with_env+'\n'
+      job_command_string += 'echo [Info] command_divider : command: '+command+'\n'
+      job_command_string += command+'\n'
       job_command_string += 'echo [Info] command_divider : End divided_command['+str(command_index)+']\n'
     job_command_string += 'echo [Info] command_divider : Finished\n'
+
 
     # Write command file to file
     with open(job_command_file_path, 'w') as job_command_file:
