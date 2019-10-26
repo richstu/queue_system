@@ -2,26 +2,84 @@
 import subprocess
 import queue_system
 import os
+import uuid
 
 class ucsb_queue(queue_system.queue_system):
+  ## Return command to run job for queue system
+  ## Should handle multiple commands in one job 
+  ## commands_info = [[command, job_index]]
+  ## submission_command_info = [submission_command, commands_info]
+  #def get_submission_command_info(self, commands_info, node):
+  #  if os.environ['CMSSW_BASE'] == "": 
+  #    print('[Error] CMSSW is not set')
+  #    return []
+  #  submission_command = 'JobSubmit.csh '
+  #  if node:
+  #    submission_command += '-node '+node+' '
+  #  submission_command += os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/command_divider.py '
+  #  for command, job_index in commands_info:
+  #    command_with_env = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/setcmsenv.sh '+os.environ['CMSSW_BASE']+' '+command
+  #    #command_with_env = './setcmsenv.sh '+command.replace('"','\\"')
+  #    submission_command += queue_system.compress_string(command_with_env)+' '
+  #    #submission_command += './setcmsenv.sh '+command.replace('"','\\"')+'; '
+  #  submission_command = submission_command[:-1]
+  #  submission_command_info = [submission_command, commands_info]
+  #  return submission_command_info
+
+  def find_new_command_file_path(self,command_directory, command_filename):
+    command_file_path = os.path.join(command_directory, command_filename)
+    if os.path.exists(command_file_path):
+      return self.find_new_command_file_path(command_directory, str(uuid.uuid4())+'.sh')
+    else:
+      return command_file_path
+
   # Return command to run job for queue system
   # Should handle multiple commands in one job 
   # commands_info = [[command, job_index]]
   # submission_command_info = [submission_command, commands_info]
   def get_submission_command_info(self, commands_info, node):
+    job_command_directory = 'job_submit_commands'
+    if not os.path.exists(job_command_directory):
+      os.makedirs(job_command_directory)
+    job_command_file_path = self.find_new_command_file_path(job_command_directory, str(uuid.uuid4())+'.sh')
+    #job_command_filename = os.path.join('job_submit_commands',str(uuid.uuid4())+'.sh')
+
     if os.environ['CMSSW_BASE'] == "": 
       print('[Error] CMSSW is not set')
       return []
     submission_command = 'JobSubmit.csh '
     if node:
       submission_command += '-node '+node+' '
-    submission_command += os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/command_divider.py '
-    for command, job_index in commands_info:
+
+    ## Make command file
+    #job_command_string = ''
+    #job_command_string = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/command_divider.py '
+    #for command, job_index in commands_info:
+    #  command_with_env = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/setcmsenv.sh '+os.environ['CMSSW_BASE']+' '+command
+    #  #command_with_env = './setcmsenv.sh '+command.replace('"','\\"')
+    #  job_command_string += queue_system.compress_string(command_with_env)+' '
+    #  #submission_command += './setcmsenv.sh '+command.replace('"','\\"')+'; '
+    #job_command_string = job_command_string[:-1]
+
+    # Alternative of making command file
+    job_command_string = '#!/bin/bash\n'
+    for command_index, command_info in enumerate(commands_info):
+      command = command_info[0]
       command_with_env = os.environ['JB_QUEUE_SYSTEM_DIR']+'/bin/setcmsenv.sh '+os.environ['CMSSW_BASE']+' '+command
-      #command_with_env = './setcmsenv.sh '+command.replace('"','\\"')
-      submission_command += queue_system.compress_string(command_with_env)+' '
-      #submission_command += './setcmsenv.sh '+command.replace('"','\\"')+'; '
-    submission_command = submission_command[:-1]
+      job_command_string += 'echo [Info] command_divider : Start divided_command['+str(command_index)+']\n'
+      job_command_string += 'echo [Info] command_divider : Current directory: '+os.getcwd()+'\n'
+      job_command_string += 'echo [Info] command_divider : command: '+command_with_env+'\n'
+      job_command_string += command_with_env+'\n'
+      job_command_string += 'echo [Info] command_divider : End divided_command['+str(command_index)+']\n'
+    job_command_string += 'echo [Info] command_divider : Finished\n'
+
+    # Write command file to file
+    with open(job_command_file_path, 'w') as job_command_file:
+      job_command_file.write(job_command_string)
+    os.system('chmod +x '+job_command_file_path)
+
+    submission_command += os.path.abspath(job_command_file_path)
+
     submission_command_info = [submission_command, commands_info]
     return submission_command_info
 
@@ -66,9 +124,10 @@ class ucsb_queue(queue_system.queue_system):
           if log_start: log_string += line
           if log_end: break
       if log_start == False or log_end == False:
-        log_string = "[Error] Couldn't find log_start: "+str(log_start)+" or log_end:"+str(log_end)+'\n'
-        with open(log_path) as log_file:
-          log_string += log_file.read()
+        log_string = 'not_found'
+        #log_string = "[Error] Couldn't find log_start: "+str(log_start)+" or log_end:"+str(log_end)+'\n'
+        #with open(log_path) as log_file:
+        #  log_string += log_file.read()
     return log_string
 
 
