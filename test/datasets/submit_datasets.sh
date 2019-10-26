@@ -4,6 +4,7 @@
 
 rm -rf jsons
 rm -rf files
+rm -rf job_submit_commands
 mkdir jsons
 mkdir files
 
