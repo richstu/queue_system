@@ -51,8 +51,9 @@ def are_arguments_valid(args):
   #  if not os.path.isfile(args['jobscript_check_filename']):
   #    return False, 'jobscript_check_filename: '+args['jobscript_check_filename']+" doesn't exist."
 
-  if not which(args['jobscript_check_filename']):
-    return False, 'jobscript_check_filename: '+args['jobscript_check_filename']+" isn't executable."
+  if args['jobscript_check_filename'] != None:
+    if not which(args['jobscript_check_filename']):
+      return False, 'jobscript_check_filename: '+args['jobscript_check_filename']+" isn't executable."
 
   valid_statuses = ['submitted', 'done', 'fail', 'success', 'to_submit']
   if len(args['statuses']) == 0:
