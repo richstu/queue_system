@@ -1,3 +1,4 @@
+#!/bin/bash
 # Enviornment
 #   voms-proxy-init -voms cms -valid 168:0
 #   source ../../set_env.sh
