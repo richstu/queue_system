@@ -183,6 +183,7 @@ class queue_system():
         # submission_command_info = [submission_command, commands_info]
         # commands_info = [(command, job_index)]
         self.submit_job(submission_command_info, jobs_info)
+        self.add_submission_command(submission_command_info, jobs_info)
         # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
         self.add_trial_job(submission_command_info, jobs_info)
         # Add trial
@@ -289,6 +290,19 @@ class queue_system():
       if job_info['job_identifier'] in job_info['job_trials']: continue
       job_info['job_trials'].append(job_info['job_identifier'])
 
+  # Adds submission command to jobs_info
+  # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
+  # submission_command_info = [submission_command, commands_info]
+  # job_index starts from 1
+  # commands_info = [(command, job_index)]
+  # job_trials: [(job_id, multiple_index)]
+  def add_submission_command(self, submission_command_info, jobs_info):
+    submission_command = submission_command_info[0]
+    commands_info = submission_command_info[1]
+    job_indices = self.get_job_indices_from_commands_info(commands_info)
+    for multiple_index, job_index in enumerate(job_indices):
+      job_info = jobs_info[job_index]
+      job_info['submission_command'] = submission_command
 
   # Adds job_id, multiple index to job_trials in certain statuses 
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
@@ -396,6 +410,9 @@ class queue_system():
       if job_status not in statuses: continue
       job_log_string = self.get_job_log_string(job_id, multiple_index)
       print('--------')
+      print('job_id: '+str(job_id)+', multiple_index: '+str(multiple_index))
+      print('job_script: '+job_info['submission_command'])
+      print('--------')
       print(job_log_string.rstrip())
       print('--------')
       if job_check_script:
@@ -406,10 +423,10 @@ class queue_system():
 
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
   def print_jobs_status(self, jobs_info):
-    print('Running commands: '+str(self.get_number_jobs(jobs_info, ['submitted'])))
+    print('Submitted commands: '+str(self.get_number_jobs(jobs_info, ['submitted'])))
     print('Done commands:      '+str(self.get_number_jobs(jobs_info, ['done'])))
     print('Success commands:   '+str(self.get_number_jobs(jobs_info, ['success'])))
-    print('Failed commands:    '+str(self.get_number_jobs(jobs_info, ['fail'])))
+    print('Fail commands:    '+str(self.get_number_jobs(jobs_info, ['fail'])))
     print('To_submit commands: '+str(self.get_number_jobs(jobs_info, ['to_submit'])))
     
 if __name__ == '__main__':
