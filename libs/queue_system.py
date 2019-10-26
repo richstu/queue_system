@@ -379,6 +379,9 @@ class queue_system():
     job_id, multiple_index = self.get_job_id_multiple_index(job_info['job_identifier'])
     job_status = job_info['job_status']
     job_log_string = self.get_job_log_string(job_id, multiple_index)
+    # Cut away if job_log is too long
+    if len(job_log_string) > 100000:
+      job_log_string = job_log_string[:100000]
     key_string = self.get_key_string(default_info, job_info)
     return job_check_script+' '+compress_string(job_log_string)+' '+compress_string(key_string)
 
