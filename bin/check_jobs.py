@@ -68,7 +68,7 @@ def are_arguments_valid(args):
 
 if __name__ == '__main__':
 
-  parser = argparse.ArgumentParser(description='Submit jobs using jobs_info.json')
+  parser = argparse.ArgumentParser(description='Checks jobs using jobs_info.json')
   parser.add_argument('jobs_info_filename', metavar='jobs_info.json')
   parser.add_argument('-o', '--output_json', metavar='checked_jobs_info.json', nargs=1)
   parser.add_argument('-c', '--jobscript_check_filename', metavar='None', nargs=1)

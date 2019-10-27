@@ -9,6 +9,8 @@ rm -rf job_submit_commands
 mkdir jsons
 mkdir files
 
+test_jobscript_check.py jobscript_check.py
+
 convert_cl_to_jobs_info.py ./command_list/cl_mc_dataset_files.py ./jsons/mc_jobs_info.json
 auto_submit_jobs.py ./jsons/mc_jobs_info.json -n cms1 -c copy_aods_check_entries.py -t 10
 check_jobs.py -s submitted,done,success,fail,to_submit jsons/auto_mc_jobs_info.json -c copy_aods_check_entries.py
