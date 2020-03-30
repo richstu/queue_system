@@ -64,6 +64,8 @@ if __name__ == '__main__':
   parser.add_argument('-m', '--max_trials', metavar=10, nargs=1)
   parser.add_argument('-t', '--pause_time', metavar=60, nargs=1)
   parser.add_argument('-c', '--jobscript_check_filename', metavar='jobscript_check.py', nargs=1)
+  parser.add_argument('-f', '--force_run', action='store_true')
+  parser.add_argument('-j', '--jobs_to_combine', metavar='None', nargs=1)
   args = vars(parser.parse_args())
 
   initialize_arguments(args)
@@ -91,12 +93,20 @@ if __name__ == '__main__':
   #jobs_info = nested_dict.load_json_file(output_json)
 
   queue = ucsb_queue.ucsb_queue()
-  # First submit of jobs
-  # jobs_info = [{'command_script':command_script, 'other_global_key':other_global_key},{'key_for_job':key_for_job},{'key_for_job':key_for_job},...]
-  # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
-  node, number_combined_commands, print_or_run  = queue.submit_jobs_info(jobs_info, node=node)
-  if print_or_run == 'p': 
-    sys.exit()
+  if args['force_run']:
+      nJobs = queue.get_number_jobs(jobs_info, ['to_submit'])
+      if args['jobs_to_combine']: number_combined_commands = int(args['jobs_to_combine'])
+      elif nJobs>300: number_combined_commands = nJobs/300
+      else: number_combined_commands = nJobs
+      print_or_run = 'r'
+      queue.raw_submit_jobs_info(jobs_info, node, number_combined_commands, print_or_run)
+  else:
+    # First submit of jobs
+    # jobs_info = [{'command_script':command_script, 'other_global_key':other_global_key},{'key_for_job':key_for_job},{'key_for_job':key_for_job},...]
+    # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
+    node, number_combined_commands, print_or_run  = queue.submit_jobs_info(jobs_info, node=node)
+    if print_or_run == 'p': 
+      sys.exit()
   nested_dict.save_json_file(jobs_info, output_json)
 
   number_submitted = queue.get_number_jobs(jobs_info, ['submitted'])
@@ -118,3 +128,8 @@ if __name__ == '__main__':
     queue.print_jobs_status(jobs_info)
 
     number_submitted = queue.get_number_jobs(jobs_info, ['submitted'])
+
+  # Give error if there is a fail
+  number_fail = queue.get_number_jobs(jobs_info, ['fail'])
+  if number_fail != 0: 
+    sys.exit(1)

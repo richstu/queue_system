@@ -338,6 +338,7 @@ class queue_system():
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
   def get_number_jobs(self, jobs_info, statuses):
+    self.initialize_jobs_info(jobs_info)
     number_jobs = 0
     default_info = jobs_info[0]
     for job_index_raw, job_info in enumerate(jobs_info[1:]):
