@@ -135,14 +135,14 @@ if __name__ == '__main__':
   is_change_key_globally, key, value = ask_change_key_globally()
   if is_change_key_globally == 'y': change_key_globally(key, value, jobs_info)
 
-  number_failed_jobs = queue.get_number_jobs(jobs_info, ['fail'])
-  print('Number of failed jobs: '+str(number_failed_jobs))
-  is_all_rerun = ask.ask_key('Do you want to re-run all failed jobs? (y/n) Default is n. ', ['y', 'n'], 'n')
-  if is_all_rerun == 'y':
+  number_failed_jobs = queue.get_number_jobs(jobs_info, statuses)
+  print('Number of jobs that can be rerun: '+str(number_failed_jobs))
+  is_all_rerun = ask.ask_key('Check logs to re-run? (y/n) Default is y. ', ['y', 'n'], 'y')
+  if is_all_rerun == 'n':
     queue.all_jobs_to_submit(jobs_info, statuses)
 
   # Ask if job should be rerun
-  if is_all_rerun == 'n':
+  if is_all_rerun == 'y':
     queue.jobs_to_submit(jobs_info, statuses, jobscript_check_filename)
 
   #queue.print_jobs_status(jobs_info)
