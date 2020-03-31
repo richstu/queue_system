@@ -72,7 +72,7 @@ if __name__ == '__main__':
   valid, log = are_arguments_valid(args)
   if not valid:
     print('[Error] '+log)
-    sys.exit()
+    sys.exit(1)
 
   #jobs_info_filename = 'jsons/auto_fix_checked_mc_2016_jobs_info.json'
   #output_json = 'jsons/auto_fix_checked_mc_2016_jobs_info.json'
