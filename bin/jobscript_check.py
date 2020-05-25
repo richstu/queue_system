@@ -13,7 +13,7 @@ job_argument_string = queue_system.decompress_string(sys.argv[2])
 #print(job_argument_string)
 #print('')
 
-if 'error' not in job_log_string.lower():
+if ('error' not in job_log_string.lower()) and ('segmentation fault' not in job_log_string.lower()):
   print('[For queue_system] success')
 else:
   print('[For queue_system] fail: Error in job_log')

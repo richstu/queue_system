@@ -236,7 +236,7 @@ class queue_system():
     job_identifier_split = job_identifier.split('_')
     return job_identifier_split[0], job_identifier_split[1]
 
-  def check_job(self, jobs_info, statuses, job_check_script, job_index):
+  def check_job(self, jobs_info, statuses, job_check_script, job_index, debug=False):
     default_info = jobs_info[0]
     job_info = jobs_info[job_index]
     job_id, multiple_index = self.get_job_id_multiple_index(job_info['job_identifier'])
@@ -245,6 +245,7 @@ class queue_system():
     # Return 'not_found' if the file does not exists
     job_log_string = self.get_job_log_string(job_id, multiple_index)
     check_command = self.get_check_command(jobs_info, job_check_script, job_index)
+    if debug: print (check_command)
     job_status, trial_reason = self.get_job_status_trial_reason(check_command, job_log_string, default_info)
     job_info['job_status'] = job_status
     if trial_reason != '':
@@ -256,11 +257,11 @@ class queue_system():
   # Check jobs in certain statuses 
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
-  def check_jobs(self, jobs_info, statuses, job_check_script=None):
+  def check_jobs(self, jobs_info, statuses, job_check_script=None, debug=False):
     self.initialize_jobs_info(jobs_info)
     for job_index_raw, job_info in enumerate(jobs_info[1:]):
       job_index = job_index_raw + 1
-      self.check_job(jobs_info, statuses, job_check_script, job_index)
+      self.check_job(jobs_info, statuses, job_check_script, job_index, debug)
 
   # Sets trial for jobs in certain statuses 
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
