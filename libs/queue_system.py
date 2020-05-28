@@ -29,7 +29,11 @@ class queue_system():
 
   # Should get job_index log using multiple_index and job_identifier
   # Return 'not_found' if the file does not exists
-  def get_job_log_string(self, job_identifier):
+  def get_job_log_string(self, job_identifier, multiple_index):
+    pass
+
+  # Returns True if job is in queue system. False if job can't be found
+  def does_job_exist(self, job_identifier):
     pass
 
   # Should return either 'submitted', 'done', 'fail', 'success', 'to_submit'
@@ -246,7 +250,12 @@ class queue_system():
     job_log_string = self.get_job_log_string(job_id, multiple_index)
     check_command = self.get_check_command(jobs_info, job_check_script, job_index)
     if debug: print (check_command)
-    job_status, trial_reason = self.get_job_status_trial_reason(check_command, job_log_string, default_info)
+    # If job is not in queue system resubmit
+    if self.does_job_exist(job_id) == False: 
+      job_status = 'to_submit'
+      trial_reason = "Job not in queue system"
+    else: 
+      job_status, trial_reason = self.get_job_status_trial_reason(check_command, job_log_string, default_info)
     job_info['job_status'] = job_status
     if trial_reason != '':
       job_info['job_trials_reason'][job_info['job_identifier']] = trial_reason

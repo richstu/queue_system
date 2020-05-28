@@ -151,6 +151,12 @@ class ucsb_queue(queue_system.queue_system):
         #  log_string += log_file.read()
     return log_string
 
+  def does_job_exist(self, job_id):
+    list_dir = '/net/cms2/cms2r0/'+os.getenv('USER')+'/jobs/'
+    command = "cat "+list_dir+"queued.list "+list_dir+"ready.list "+list_dir+"running.list "+list_dir+"completed.list "+list_dir+"old.list | awk '{print $1}' | grep "+job_id+" | wc -l"
+    t_does_job_exist = subprocess.check_output(command, shell=True).rstrip()
+    return t_does_job_exist != "0"
+
 
 if __name__ == '__main__':
   # Reserved keys: job_id, job_status
