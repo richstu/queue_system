@@ -97,7 +97,7 @@ if __name__ == '__main__':
       nJobs = queue.get_number_jobs(jobs_info, ['to_submit'])
       if args['jobs_to_combine']: number_combined_commands = int(args['jobs_to_combine'])
       elif nJobs>300: number_combined_commands = nJobs/300
-      else: number_combined_commands = nJobs
+      else: number_combined_commands = 1
       print_or_run = 'r'
       queue.raw_submit_jobs_info(jobs_info, node, number_combined_commands, print_or_run)
   else:
