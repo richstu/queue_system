@@ -155,6 +155,12 @@ class ucsb_queue(queue_system.queue_system):
     list_dir = '/net/cms2/cms2r0/'+os.getenv('USER')+'/jobs/'
     command = "cat "+list_dir+"queued.list "+list_dir+"ready.list "+list_dir+"running.list "+list_dir+"completed.list "+list_dir+"old.list | awk '{print $1}' | grep "+job_id+" | wc -l"
     t_does_job_exist = subprocess.check_output(command, shell=True).rstrip()
+    # Check it again to be sure
+    if (t_does_job_exist == "0"):
+      t_does_job_exist = subprocess.check_output(command, shell=True).rstrip()
+    # Check it again to be sure
+    if (t_does_job_exist == "0"):
+      t_does_job_exist = subprocess.check_output(command, shell=True).rstrip()
     return t_does_job_exist != "0"
 
 
