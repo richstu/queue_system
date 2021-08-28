@@ -49,7 +49,7 @@ class ucsb_queue(queue_system.queue_system):
       return []
     submission_command = 'JobSubmit.csh '
     if node:
-      submission_command += '-node '+node+' '
+      submission_command += '-node '+node+' -urgency 9 ' # Set urgency to lower value to be able to process cmsany
 
     ## Make command file
     #job_command_string = ''
