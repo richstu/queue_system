@@ -415,6 +415,8 @@ class queue_system():
       print('--------')
       print(job_log_string.rstrip())
       print('--------')
+      print('fail reason: '+job_info['job_trials_reason'][job_info['job_identifier']])
+      print('--------')
       if job_check_script:
         print(self.get_check_command(jobs_info, job_check_script, job_index))
         print('--------')
