@@ -142,6 +142,9 @@ class ucsb_queue(queue_system.queue_system):
         for line in log_file:
           if '[Info] command_divider : Start divided_command['+multiple_index+']' in line: log_start = True
           if '[Info] command_divider : End divided_command['+multiple_index+']' in line: log_end = True
+          if 'Terminated\n' == line: 
+            log_string += '[Error] Job was terminated. job_id: '+str(job_id)+' multiple_index: '+str(multiple_index)+'.'
+            return log_string
           if log_start: log_string += line
           if log_end: break
       if log_start == False or log_end == False:

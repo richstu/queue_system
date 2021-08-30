@@ -75,6 +75,9 @@ class queue_system():
             job_status = 'done'
         else:
           job_status = 'done'
+      elif '[Error] Job was terminated' in job_log_string:
+        job_status = 'fail'
+        trial_reason = 'Job was terminated'
     return job_status, trial_reason
 
   # job_index starts from 1
@@ -423,9 +426,9 @@ class queue_system():
       print('--------')
       print('job_id: '+str(job_id)+', multiple_index: '+str(multiple_index))
       print('job_script: '+job_info['submission_command'])
-      print('--------')
+      print('--------Job Log--------')
       print(job_log_string.rstrip())
-      print('--------')
+      print('--------Job Log--------')
       print('fail reason: '+job_info['job_trials_reason'][job_info['job_identifier']])
       print('--------')
       if job_check_script:
