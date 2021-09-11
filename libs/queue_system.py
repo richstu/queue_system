@@ -429,7 +429,8 @@ class queue_system():
       print('--------Job Log--------')
       print(job_log_string.rstrip())
       print('--------Job Log--------')
-      print('fail reason: '+job_info['job_trials_reason'][job_info['job_identifier']])
+      if (job_info['job_identifier'] in job_info['job_trials_reason']): print('fail reason: '+job_info['job_trials_reason'][job_info['job_identifier']])
+      else: print('fail reason: unknown')
       print('--------')
       if job_check_script:
         print(self.get_check_command(jobs_info, job_check_script, job_index))
