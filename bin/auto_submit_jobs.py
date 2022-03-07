@@ -43,9 +43,19 @@ def are_arguments_valid(args):
     return False, 'jobs_info_filename: '+args['jobs_info_filename']+" doesn't exist."
 
   if os.path.isfile(args['output_json']):
-    overwrite = ask.ask_key(args['output_json']+' already exits. Do you want to overwrite? (y/n) Default is n. ', ['y','n'], 'n')
-    if overwrite == 'n':
-      return False, 'output_json: '+args['output_json']+' already exits.'
+    if args['force_run']:
+      fileIndex = 1
+      while (1):
+        filename = args['output_json']+"."+str(fileIndex)
+        if not os.path.isfile(filename):
+          os.system('mv '+args['output_json']+' '+args['output_json']+"."+str(fileIndex))
+          print("[Info] Moved old "+args['output_json']+" to "+args['output_json']+"."+str(fileIndex))
+          break
+        fileIndex += 1
+    else:
+      overwrite = ask.ask_key(args['output_json']+' already exits. Do you want to overwrite? (y/n) Default is n. ', ['y','n'], 'n')
+      if overwrite == 'n':
+        return False, 'output_json: '+args['output_json']+' already exits.'
 
   #if not os.path.isfile(args['jobscript_check_filename']):
   #  return False, 'jobscript_check_filename: '+args['jobscript_check_filename']+" doesn't exist."

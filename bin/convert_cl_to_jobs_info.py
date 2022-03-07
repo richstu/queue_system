@@ -32,17 +32,20 @@ def initialize_arguments(args):
 
 def are_arguments_valid(args):
   if os.path.isfile(args['jobs_info_filename']):
-    #overwrite = ask.ask_key(args['jobs_info_filename']+' already exits. Do you want to overwrite? (y/n) Default is n. ', ['y','n'], 'n')
-    #if overwrite == 'n':
-    #  return False, args['jobs_info_filename']+' already exist.'
-    fileIndex = 1
-    while (1):
-      filename = args['jobs_info_filename']+"."+str(fileIndex)
-      if not os.path.isfile(filename):
-        os.system('mv '+args['jobs_info_filename']+' '+args['jobs_info_filename']+"."+str(fileIndex))
-        print("[Info] Moved old "+args['jobs_info_filename']+" to "+args['jobs_info_filename']+"."+str(fileIndex))
-        break
-      fileIndex += 1
+    if args['force_run']:
+      fileIndex = 1
+      while (1):
+        filename = args['jobs_info_filename']+"."+str(fileIndex)
+        if not os.path.isfile(filename):
+          os.system('mv '+args['jobs_info_filename']+' '+args['jobs_info_filename']+"."+str(fileIndex))
+          print("[Info] Moved old "+args['jobs_info_filename']+" to "+args['jobs_info_filename']+"."+str(fileIndex))
+          break
+        fileIndex += 1
+    else:
+      overwrite = ask.ask_key(args['jobs_info_filename']+' already exits. Do you want to overwrite? (y/n) Default is n. ', ['y','n'], 'n')
+      if overwrite == 'n':
+        return False, args['jobs_info_filename']+' already exist.'
+
 
   if not os.path.isfile(args['command_list_filename']):
     return False, args['command_list_filename']+" does not exist."
@@ -57,6 +60,7 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Converts a command_list.py(cl) to a jobs_info.json')
   parser.add_argument('command_list_filename', metavar='cl_task.py')
   parser.add_argument('jobs_info_filename', metavar='jobs_info.json')
+  parser.add_argument('-f', '--force_run', action="store_true", help='Does not ask questions')
   args = vars(parser.parse_args())
 
   initialize_arguments(args)
