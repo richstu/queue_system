@@ -32,9 +32,17 @@ def initialize_arguments(args):
 
 def are_arguments_valid(args):
   if os.path.isfile(args['jobs_info_filename']):
-    overwrite = ask.ask_key(args['jobs_info_filename']+' already exits. Do you want to overwrite? (y/n) Default is n. ', ['y','n'], 'n')
-    if overwrite == 'n':
-      return False, args['jobs_info_filename']+' already exist.'
+    #overwrite = ask.ask_key(args['jobs_info_filename']+' already exits. Do you want to overwrite? (y/n) Default is n. ', ['y','n'], 'n')
+    #if overwrite == 'n':
+    #  return False, args['jobs_info_filename']+' already exist.'
+    fileIndex = 1
+    while (1):
+      filename = args['jobs_info_filename']+"."+str(fileIndex)
+      if not os.path.isfile(filename):
+        os.system('mv '+args['jobs_info_filename']+' '+args['jobs_info_filename']+"."+str(fileIndex))
+        print("[Info] Moved old "+args['jobs_info_filename']+" to "+args['jobs_info_filename']+"."+str(fileIndex))
+        break
+      fileIndex += 1
 
   if not os.path.isfile(args['command_list_filename']):
     return False, args['command_list_filename']+" does not exist."
