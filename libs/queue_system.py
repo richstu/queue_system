@@ -67,7 +67,10 @@ class queue_system():
       # If job is finished
       if ('[Info] command_divider : End divided_command[' in job_log_string):
         if check_command:
-          status_reason_string = subprocess.check_output(check_command, shell=True)
+          try:
+            status_reason_string = subprocess.check_output(check_command, shell=True)
+          except:
+            status_reason_string = '[For queue_system] fail: check script crashed: '+check_command
           job_status, trial_reason = self.get_status_reason(status_reason_string)
           if job_status != 'fail' and job_status != 'success' and job_status != 'to_submit':
             print('[Error] Below command gave unkown status: '+repr(job_status)+'. Setting job_status to done.')
