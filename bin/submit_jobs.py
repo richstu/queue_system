@@ -2,7 +2,7 @@
 import argparse
 import nested_dict
 import subprocess
-import ucsb_queue
+import ucsb_condor_queue
 import queue_system
 import sys
 import os
@@ -38,6 +38,7 @@ if __name__ == '__main__':
   parser.add_argument('jobs_info_filename', metavar='jobs_info.json')
   parser.add_argument('-o', '--output_json', metavar='submitted_jobs_info.json', nargs=1)
   parser.add_argument('-n', '--node', metavar='"node_name"', nargs=1)
+  parser.add_argument('-r', '--max_run', nargs=1)
   args = vars(parser.parse_args())
 
   initialize_arguments(args)
@@ -53,11 +54,12 @@ if __name__ == '__main__':
   jobs_info_filename = args['jobs_info_filename']
   output_json = args['output_json']
   node = args['node']
+  max_run = args['max_run']
 
   # jobs_info = [{'command_script':command_script, 'other_global_key':other_global_key},{'key_for_job':key_for_job},{'key_for_job':key_for_job},...]
   jobs_info = nested_dict.load_json_file(jobs_info_filename)
-  queue = ucsb_queue.ucsb_queue()
+  queue = ucsb_condor_queue.ucsb_condor_queue()
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
-  node, number_combined_commands, print_or_run = queue.submit_jobs_info(jobs_info, node=node)
+  node, number_combined_commands, print_or_run = queue.submit_jobs_info(jobs_info, jobs_info_filename, node=node, max_run=max_run)
 
   if print_or_run == 'r': nested_dict.save_json_file(jobs_info, output_json)

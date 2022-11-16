@@ -166,18 +166,18 @@ class queue_system():
   # Returns 'r' or 'p' if run or printed
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
-  def submit_jobs_info(self, jobs_info, node=None):
+  def submit_jobs_info(self, jobs_info, jobs_info_filename, node=None, max_run=None):
     self.initialize_jobs_info(jobs_info)
 
     print('[Info] Number of commands to submit: '+str(self.get_number_jobs(jobs_info, ['to_submit'])))
 
     number_combined_commands = self.get_number_combined_commands()
     print_or_run = self.get_print_or_run()
-    return self.raw_submit_jobs_info(jobs_info, node, number_combined_commands, print_or_run)
+    return self.raw_submit_jobs_info(jobs_info, node, number_combined_commands, print_or_run, jobs_info_filename, max_run)
 
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
-  def raw_submit_jobs_info(self, jobs_info, node, number_combined_commands, print_or_run):
+  def raw_submit_jobs_info(self, jobs_info, node, number_combined_commands, print_or_run, jobs_info_filename, max_run=None):
     self.initialize_jobs_info(jobs_info)
 
     # commands_info = [[command, job_index]]
@@ -187,16 +187,9 @@ class queue_system():
     combined_commands_info = self.get_combined_commands_info(number_combined_commands, commands_info)
     # submission_commands_info = [[submission_command, [command, job_index]]]
     submission_commands_info = self.get_submission_commands_info(combined_commands_info, node)
-
+    
     if print_or_run == 'r':
-      for submission_command_info in submission_commands_info:
-        # submission_command_info = [submission_command, commands_info]
-        # commands_info = [(command, job_index)]
-        self.submit_job(submission_command_info, jobs_info)
-        self.add_submission_command(submission_command_info, jobs_info)
-        # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
-        self.add_trial_job(submission_command_info, jobs_info)
-        # Add trial
+      self.submit_jobs(submission_commands_info, jobs_info, jobs_info_filename, node, max_run)
     elif print_or_run == 'p':
       for submission_command_info in submission_commands_info:
         # submission_command_info = [submission_command, commands_info]
