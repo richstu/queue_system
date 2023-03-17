@@ -33,6 +33,7 @@ class ucsb_condor_queue(queue_system.queue_system):
     job_command_string = '#!/bin/bash\n'
     # Set env
     job_command_string += 'WORK_DIR=$PWD\n'
+    job_command_string += 'export HOME='+os.environ['HOME']+'\n'
     job_command_string += 'source /cvmfs/cms.cern.ch/cmsset_default.sh\n'
     job_command_string += 'cd '+os.environ['CMSSW_BASE']+'/src\n'
     job_command_string += 'eval `scramv1 runtime -sh`\n'
