@@ -25,19 +25,20 @@ class ucsb_condor_queue(queue_system.queue_system):
       os.makedirs(job_command_directory)
     job_command_file_path = self.find_new_command_file_path(job_command_directory, str(uuid.uuid4())+'.sh')
 
-    if os.environ['CMSSW_BASE'] == "": 
-      print('[Error] CMSSW is not set')
-      return []
+    #if os.environ['CMSSW_BASE'] == "": 
+    #  print('[Error] CMSSW is not set')
+    #  return []
 
     # Making command file
     job_command_string = '#!/bin/bash\n'
     # Set env
     job_command_string += 'WORK_DIR=$PWD\n'
     job_command_string += 'export HOME='+os.environ['HOME']+'\n'
-    job_command_string += 'source /cvmfs/cms.cern.ch/cmsset_default.sh\n'
-    job_command_string += 'cd '+os.environ['CMSSW_BASE']+'/src\n'
-    job_command_string += 'eval `scramv1 runtime -sh`\n'
-    job_command_string += 'cd $WORK_DIR\n'
+    if 'CMSSW_BASE' in os.environ:
+      job_command_string += 'source /cvmfs/cms.cern.ch/cmsset_default.sh\n'
+      job_command_string += 'cd '+os.environ['CMSSW_BASE']+'/src\n'
+      job_command_string += 'eval `scramv1 runtime -sh`\n'
+      job_command_string += 'cd $WORK_DIR\n'
     if os.path.exists('voms_proxy.txt'):
       job_command_string += 'export X509_USER_PROXY=voms_proxy.txt\n'
     # Write commands
