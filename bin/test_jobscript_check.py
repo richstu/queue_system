@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/bin/env python3
 import queue_system
 import argparse
 import subprocess
@@ -21,7 +21,7 @@ if __name__ == '__main__':
   print('[Info] Actual command.')
   print('  '+check_command)
   print('[Info] Running command.')
-  status_reason_string = subprocess.check_output(check_command, shell=True)
+  status_reason_string = subprocess.check_output(check_command, shell=True, encoding='UTF-8')
   print('[Info] Command result')
   print('  '+status_reason_string)
   print('[Info] Parsed command result')

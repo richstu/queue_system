@@ -1,7 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import nested_dict
 import subprocess
-import ucsb_condor_queue
+import connect_condor_queue
 import queue_system
 import os
 import argparse
@@ -27,7 +27,7 @@ def initialize_arguments(args):
   for key in args:
     if isinstance(args[key], list) and len(args[key])==1: 
       args[key] = args[key][0]
-      if unicode(args[key]).isnumeric():
+      if str(args[key]).isnumeric():
         args[key] = int(args[key])
   if not args['output_json']:
     folder = os.path.dirname(args['jobs_info_filename'])
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     print('[Error] '+log)
     sys.exit()
 
-  queue = ucsb_condor_queue.ucsb_condor_queue()
+  queue = connect_condor_queue.connect_condor_queue()
 
   #jobs_info_filename = 'jsons/submitted_test_mc_jobs_info.json'
   #output_json = 'jsons/checked_test_mc_jobs_info.json'

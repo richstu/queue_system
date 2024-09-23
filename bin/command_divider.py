@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Runs multiple commands, where each argument is a compressed command
 import sys
 import zlib

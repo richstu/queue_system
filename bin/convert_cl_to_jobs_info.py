@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import subprocess
 import queue_system
 import argparse
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     sys.exit()
 
   jobs_info = [{}]
-  command_list_output = subprocess.check_output(args['command_list_filename'], shell=True)
+  command_list_output = subprocess.check_output(args['command_list_filename'], shell=True, encoding='UTF-8')
   for line in command_list_output.split('\n'):
     if line == '': continue
     # Parse global_key

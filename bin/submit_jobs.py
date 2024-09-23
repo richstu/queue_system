@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import argparse
 import nested_dict
 import subprocess
-import ucsb_condor_queue
+import connect_condor_queue
 import queue_system
 import sys
 import os
