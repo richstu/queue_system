@@ -8,6 +8,7 @@ import queue_system
 import os
 import argparse
 import ask
+import shutil
 # This script depends on the queue system
 
 def which(program):
@@ -135,6 +136,7 @@ if __name__ == '__main__':
     queue.check_jobs(jobs_info, ['submitted'], jobscript_check_filename)
     #queue.add_trials_jobs(jobs_info, ['to_submit'])
     queue.fail_max_trials_jobs(jobs_info, ['to_submit'], max_trials)
+    shutil.copy(output_json, f'{output_json}.1')
     nested_dict.save_json_file(jobs_info, output_json)
 
     print('[Info] Before submit')
