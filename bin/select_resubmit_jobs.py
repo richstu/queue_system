@@ -27,7 +27,7 @@ def initialize_arguments(args):
   for key in args:
     if isinstance(args[key], list) and len(args[key])==1: 
       args[key] = args[key][0]
-      if unicode(args[key]).isnumeric():
+      if str(args[key]).isnumeric():
         args[key] = int(args[key])
   if not args['output_json']:
     folder = os.path.dirname(args['jobs_info_filename'])
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     sys.exit()
 
 
-  queue = ucsb_condor_queue.ucsb_condor_queue()
+  queue = connect_condor_queue.connect_condor_queue()
 
   #jobs_info_filename = 'jsons/auto_fix_checked_mc_2016_jobs_info.json'
   #output_json = 'jsons/auto_fix_checked_mc_2016_jobs_info.json'
