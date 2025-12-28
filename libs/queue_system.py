@@ -250,7 +250,7 @@ class queue_system():
     job_identifier_split = job_identifier.split('_')
     return job_identifier_split[0], job_identifier_split[1]
 
-  def check_job(self, jobs_info, statuses, job_check_script, job_index, debug=False):
+  def check_job(self, jobs_info, statuses, job_check_script, job_index, debug=False, force_check=False):
     default_info = jobs_info[0]
     job_info = jobs_info[job_index]
     job_id, multiple_index = self.get_job_id_multiple_index(job_info['job_identifier'])
@@ -261,7 +261,7 @@ class queue_system():
     check_command = self.get_check_command(jobs_info, job_check_script, job_index)
     if debug: print (check_command)
     # If job is not in queue system resubmit
-    if self.does_job_exist(job_id) == False: 
+    if self.does_job_exist(job_id) == False and force_check == False: 
       job_status = 'to_submit'
       trial_reason = "Job not in queue system"
     else: 
@@ -276,11 +276,11 @@ class queue_system():
   # Check jobs in certain statuses 
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
-  def check_jobs(self, jobs_info, statuses, job_check_script=None, debug=False):
+  def check_jobs(self, jobs_info, statuses, job_check_script=None, debug=False, force_check=False):
     self.initialize_jobs_info(jobs_info)
     for job_index_raw, job_info in enumerate(jobs_info[1:]):
       job_index = job_index_raw + 1
-      self.check_job(jobs_info, statuses, job_check_script, job_index, debug)
+      self.check_job(jobs_info, statuses, job_check_script, job_index, debug, force_check)
 
   # Sets trial for jobs in certain statuses 
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)

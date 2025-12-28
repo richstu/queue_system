@@ -74,6 +74,7 @@ if __name__ == '__main__':
   parser.add_argument('-c', '--jobscript_check_filename', metavar='None', nargs=1)
   parser.add_argument('-s', '--statuses', metavar='submitted,', nargs=1)
   parser.add_argument('-d', '--debug', action='store_true')
+  parser.add_argument('-f', '--force_check', action='store_true')
   args = vars(parser.parse_args())
 
   initialize_arguments(args)
@@ -101,7 +102,7 @@ if __name__ == '__main__':
   # Each job type should make job_script, and job_check_script
   # The ./job_check_script job_log_string should return 'success' or 'fail' for a job_log_string
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
-  queue.check_jobs(jobs_info, statuses, jobscript_check_filename, args['debug'])
+  queue.check_jobs(jobs_info, statuses, jobscript_check_filename, args['debug'], args['force_check'])
   #queue.check_jobs(jobs_info, ['submitted', 'done', 'fail', 'success', 'to_submit'], jobscript_check_filename)
   queue.print_jobs_status(jobs_info)
 
