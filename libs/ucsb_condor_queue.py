@@ -173,10 +173,8 @@ class ucsb_condor_queue(queue_system.queue_system):
         #  log_string += log_file.read()
     return log_string
 
-  # Next process id the late-materialization factory of a cluster will create ('' if no factory).
-  # Cached for a short time per cluster so a check pass makes one condor_q -factory call per
-  # cluster instead of one per job. The value only grows (and '' is final), so a slightly stale
-  # value can only make a job look "not yet materialized", i.e. existing, and the next call fixes it.
+  # Caches condor cluster result briefly so a check pass makes one condor_q -factory call per
+  # cluster instead of one per job. Reduces number of distinct condor_q -factory calls. 
   factory_cache_seconds = 30
   def get_factory_next_id(self, cluster_id):
     if not hasattr(self, 'factory_cache'): self.factory_cache = {}

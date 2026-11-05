@@ -19,9 +19,9 @@ def decompress_string(compressed_string):
 class queue_system():
   # Number of finished jobs whose check commands are run by one batch runner process
   batch_check_size = 50
-  batch_check_results = None  # check command -> output string
-  batch_check_attempted = None  # check commands already given to the runner in this pass
-  batch_check_failed = False  # runner failed in this pass, so stop using it until the next pass
+  batch_check_results = None
+  batch_check_attempted = None
+  batch_check_failed = False
 
   # job_index starts from 1
   # submission_commands_info = [[submission_command, [command, job_index]]]
@@ -286,10 +286,7 @@ class queue_system():
     else:
       print('[Info]: Checked job_index: '+str(job_index)+' job_id: '+job_id+' multiple_index: '+multiple_index+' job_status: '+job_info['job_status']+timing)
 
-  # If an executable run_checks_batch.py sits in the same directory as the job check script, it is
-  # used to run the check commands of all finished jobs in groups of batch_check_size instead of
-  # one process per job.
-  # Without such a runner the jobs are checked one by one as before.
+  # run_checks_batch.py runs check commands of all finished jobs in groups of batch_check_size.
   # The runner gets two arguments: a json file with the list of check commands (exactly the
   # strings that would be run one by one) and a json file to fill with one output string per command.
   # The results go in self.batch_check_results; anything missing is run one by one as usual.
