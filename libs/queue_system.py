@@ -406,7 +406,7 @@ class queue_system():
     # Cut away if job_log is too long
     # Keep the head and the tail: the end of the log has the summary lines (e.g. SKIM_PASS_EVENTS)
     if len(job_log_string) > 100000:
-    job_log_string = job_log_string[:50000] + '\n[...log truncated by queue_system...]\n' + job_log_string[-50000:]
+      job_log_string = job_log_string[:50000] + '\n[...log truncated by queue_system...]\n' + job_log_string[-50000:]
     key_string = self.get_key_string(default_info, job_info)
     return job_check_script+' '+compress_string(job_log_string)+' '+compress_string(key_string)
 
