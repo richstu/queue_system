@@ -3,6 +3,10 @@ import subprocess
 import zlib
 import re
 import ask
+import time
+import os
+import json
+import tempfile
 
 # Compress string to pass things through posix
 def compress_string(string):
@@ -13,6 +17,12 @@ def decompress_string(compressed_string):
   return zlib.decompress(compressed_string.decode('hex'))
 
 class queue_system():
+  # Number of finished jobs whose check commands are run by one batch runner process
+  batch_check_size = 50
+  batch_check_results = None
+  batch_check_attempted = None
+  batch_check_failed = False
+
   # job_index starts from 1
   # submission_commands_info = [[submission_command, [command, job_index]]]
   # Should modify jobs_info[job_index]['job_identifier']. Should modify jobs_info[job_index]['job_status'] to 'submitted'
@@ -68,7 +78,9 @@ class queue_system():
       if ('[Info] command_divider : End divided_command[' in job_log_string):
         if check_command:
           try:
-            status_reason_string = subprocess.check_output(check_command, shell=True)
+            status_reason_string = (self.batch_check_results or {}).get(check_command)
+            if status_reason_string is None:
+              status_reason_string = subprocess.check_output(check_command, shell=True)
           except:
             status_reason_string = '[For queue_system] fail: check script crashed: '+check_command
           job_status, trial_reason = self.get_status_reason(status_reason_string)
@@ -245,28 +257,106 @@ class queue_system():
     job_id, multiple_index = self.get_job_id_multiple_index(job_info['job_identifier'])
     job_status = job_info['job_status']
     if job_status not in statuses: return
+    t_start = time.time()
     # Return 'not_found' if the file does not exists
     job_log_string = self.get_job_log_string(job_id, multiple_index)
     check_command = self.get_check_command(jobs_info, job_check_script, job_index)
     if debug: print (check_command)
+    t_log = time.time()
     # If job is not in queue system resubmit
-    if self.does_job_exist(job_id) == False: 
+    job_exists = (job_log_string != 'not_found') or self.does_job_exist(job_id)
+    t_exist = time.time()
+    if job_exists == False: 
       job_status = 'to_submit'
       trial_reason = "Job not in queue system"
     else: 
+      if (check_command and self.is_job_finished(job_log_string)
+          and check_command not in (self.batch_check_results or {})):
+        self.prepare_batch_checks(jobs_info, statuses, job_check_script, job_index)
       job_status, trial_reason = self.get_job_status_trial_reason(check_command, job_log_string, default_info)
+    t_end = time.time()
     job_info['job_status'] = job_status
+    # Set QS_TIMING=1 to append where the time of each check went (seconds)
+    timing = ''
+    if os.environ.get('QS_TIMING'):
+      timing = ' timing: log %.2f, exist %.2f, check %.2f' % (t_log - t_start, t_exist - t_log, t_end - t_exist)
     if trial_reason != '':
       job_info['job_trials_reason'][job_info['job_identifier']] = trial_reason
-      print('[Info]: Checked job_index: '+str(job_index)+' job_id: '+job_id+' multiple_index: '+multiple_index+' job_status: '+job_info['job_status']+' job_trial_reason: '+trial_reason)
+      print('[Info]: Checked job_index: '+str(job_index)+' job_id: '+job_id+' multiple_index: '+multiple_index+' job_status: '+job_info['job_status']+' job_trial_reason: '+trial_reason+timing)
     else:
-      print('[Info]: Checked job_index: '+str(job_index)+' job_id: '+job_id+' multiple_index: '+multiple_index+' job_status: '+job_info['job_status'])
+      print('[Info]: Checked job_index: '+str(job_index)+' job_id: '+job_id+' multiple_index: '+multiple_index+' job_status: '+job_info['job_status']+timing)
+
+  # run_checks_batch.py runs check commands of all finished jobs in groups of batch_check_size.
+  # The runner gets two arguments: a json file with the list of check commands (exactly the
+  # strings that would be run one by one) and a json file to fill with one output string per command.
+  # The results go in self.batch_check_results; anything missing is run one by one as usual.
+  def find_batch_check_runner(self, job_check_script):
+    if not job_check_script: return None
+    script = job_check_script.split()[0]
+    script_dir = os.path.dirname(script)
+    if script_dir == '': return None # found through PATH, so no way to tell where its neighbours are
+    runner = os.path.join(script_dir, 'run_checks_batch.py')
+    if os.path.isfile(runner) and os.access(runner, os.X_OK): return runner
+    return None
+
+  def is_job_finished(self, job_log_string):
+    return '[Info] command_divider : End divided_command[' in job_log_string
+  # Batches the check commands of all jobs from start_index on that are finished now and were not
+  # given to the runner yet in this pass.
+  def prepare_batch_checks(self, jobs_info, statuses, job_check_script, start_index=1):
+    if self.batch_check_failed: return
+    if self.batch_check_results is None: # check_job used outside check_jobs
+      self.batch_check_results = {}
+      self.batch_check_attempted = set()
+    runner =self.find_batch_check_runner(job_check_script)
+    if runner is None: return
+    commands = []
+    for job_index in range(start_index, len(jobs_info)):
+      job_info = jobs_info[job_index]
+      if job_info['job_status'] not in statuses: continue
+      job_id, multiple_index = self.get_job_id_multiple_index(job_info['job_identifier'])
+      job_log_string = self.get_job_log_string(job_id, multiple_index)
+      if not self.is_job_finished(job_log_string): continue
+      command = self.get_check_command(jobs_info, job_check_script, job_index)
+      if not command or command in self.batch_check_attempted: continue
+      self.batch_check_attempted.add(command)
+      commands.append(command)
+    batch_size = max(1, self.batch_check_size)
+    for start in range(0, len(commands), batch_size):
+      self.run_batch_check_chunk(runner, commands[start:start+batch_size])
+
+  def run_batch_check_chunk(self, runner, commands):
+    t_start = time.time()
+    in_path = out_path = None
+    try:
+      in_fd, in_path = tempfile.mkstemp(prefix='qs_batch_in_', suffix='.json')
+      with os.fdopen(in_fd, 'w') as in_file: json.dump(commands, in_file)
+      out_fd, out_path = tempfile.mkstemp(prefix='qs_batch_out_', suffix='.json')
+      os.close(out_fd)
+      subprocess.check_call([runner, in_path, out_path])
+      with open(out_path) as out_file: results = json.load(out_file)
+      if len(results) != len(commands): raise Exception('got '+str(len(results))+' results for '+str(len(commands))+' commands')
+      for command, result in zip(commands, results):
+        if not isinstance(result, str): result = result.encode('utf-8') # python2 unicode from json
+        self.batch_check_results[command] = result
+      print('[Info]: Batch-checked '+str(len(commands))+' jobs in %.1f s' % (time.time() - t_start))
+    except Exception as error:
+      self.batch_check_failed = True
+      print('[Warning] Batch check failed ('+str(error)+'), checking these jobs one by one.')
+    finally:
+      for path in (in_path, out_path):
+        if path and os.path.exists(path): os.remove(path)
+
 
   # Check jobs in certain statuses 
   # jobs_info = ({'global_key':global_value},{'command': command for job 1, 'key_for_job':value_for_job1},{'command': command for job 2', key_for_job':value2_for_job2},...)
   # statuses: [status], where status = 'submitted', 'done', 'fail', 'success', 'to_submit'
   def check_jobs(self, jobs_info, statuses, job_check_script=None, debug=False):
     self.initialize_jobs_info(jobs_info)
+    self.batch_check_results = {}
+    self.batch_check_attempted = set()
+    self.batch_check_failed = False
+    self.prepare_batch_checks(jobs_info, statuses, job_check_script)
     for job_index_raw, job_info in enumerate(jobs_info[1:]):
       job_index = job_index_raw + 1
       self.check_job(jobs_info, statuses, job_check_script, job_index, debug)
@@ -404,7 +494,6 @@ class queue_system():
     job_status = job_info['job_status']
     job_log_string = self.get_job_log_string(job_id, multiple_index)
     # Cut away if job_log is too long
-    # Keep the head and the tail: the end of the log has the summary lines (e.g. SKIM_PASS_EVENTS)
     if len(job_log_string) > 100000:
       job_log_string = job_log_string[:50000] + '\n[...log truncated by queue_system...]\n' + job_log_string[-50000:]
     key_string = self.get_key_string(default_info, job_info)

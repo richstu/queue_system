@@ -5,6 +5,7 @@ import os
 import uuid
 import re
 import datetime
+import time
 
 class ucsb_condor_queue(queue_system.queue_system):
 
@@ -173,11 +174,28 @@ class ucsb_condor_queue(queue_system.queue_system):
         #  log_string += log_file.read()
     return log_string
 
+  # Caches condor cluster result briefly so a check pass makes one condor_q -factory call per
+  # cluster instead of one per job. Reduces number of distinct condor_q -factory calls. 
+  factory_cache_seconds = 30
+  def get_factory_next_id(self, cluster_id):
+    if not hasattr(self, 'factory_cache'): self.factory_cache = {}
+    now = time.time()
+    if cluster_id in self.factory_cache:
+      cached_time, cached_next_id = self.factory_cache[cluster_id]
+      if now - cached_time < self.factory_cache_seconds: return cached_next_id
+    command = "condor_q -factory "+cluster_id+" | grep -A1 OWNER | grep -v OWNER | awk '{print $10}'"
+    next_id = subprocess.check_output(command, shell=True).rstrip()
+    self.factory_cache[cluster_id] = (now, next_id)
+    return next_id
+
+
+
   def does_job_exist(self, job_id):
     # Check factory
     cluster_id, process_id = job_id.split('.')
-    command = "condor_q -factory "+cluster_id+" | grep -A1 OWNER | grep -v OWNER | awk '{print $10}'"
-    next_id = subprocess.check_output(command, shell=True).rstrip()
+    #command = "condor_q -factory "+cluster_id+" | grep -A1 OWNER | grep -v OWNER | awk '{print $10}'"
+    #next_id = subprocess.check_output(command, shell=True).rstrip()
+    next_id = self.get_factory_next_id(cluster_id)
     if next_id != "":
       if int(process_id) >= int(next_id): return True
     # Check running
@@ -185,7 +203,7 @@ class ucsb_condor_queue(queue_system.queue_system):
     t_does_job_exist = (subprocess.check_output(command, shell=True).rstrip() == "1")
     if t_does_job_exist: return True
     # Check history
-    command = "condor_history "+job_id+" | grep -A1 OWNER | grep -v OWNER | wc -l"
+    command = "condor_history -limit 1 "+job_id+" | grep -A1 OWNER | grep -v OWNER | wc -l"
     t_does_job_exist = (subprocess.check_output(command, shell=True).rstrip() == "1")
     if t_does_job_exist: return True
     return False
